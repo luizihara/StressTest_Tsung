@@ -1,0 +1,99 @@
+<?xml version="1.0"?>
+<!-- <!DOCTYPE tsung SYSTEM "/usr/share/tsung/tsung-1.0.dtd"> -->
+<!DOCTYPE tsung SYSTEM "/usr/local/Cellar/tsung/1.7.1/share/tsung/tsung-1.0.dtd">
+<!-- <tsung loglevel="warning" dumptraffic="true"> -->
+
+<tsung loglevel="warning">
+
+    <clients>
+        <client host="localhost" maxusers="2000" cpu="1"/>
+        <!-- 
+        <client host="stress-01" maxusers="2000" cpu="1"/>
+        <client host="stress-02" maxusers="20000" cpu="3"/>
+        <client host="stress-03" maxusers="20000" cpu="3"/>
+        <client host="stress-04" maxusers="20000" cpu="3"/> -->
+        <!--   <client host="localhost" use_controller_vm="true"/> -->        <!-- comentar quando for rodar utilizando as outras instancias -->
+
+    </clients>
+
+    <servers>
+        <server host="www.google.com.br" port="443" type="ssl"/>
+    </servers>
+
+    <monitoring>
+        <monitor host="localhost" type="erlang"></monitor>
+        <!-- 
+        <monitor host="stress-01" type="erlang"></monitor>
+        <monitor host="stress-02" type="erlang"></monitor>
+        <monitor host="stress-03" type="erlang"></monitor>
+        <monitor host="stress-04" type="erlang"></monitor> -->
+
+    </monitoring>
+
+    <!-- Carga utilizada -->
+    <load duration="10" unit="minute">
+        <arrivalphase phase="1" duration="2" unit="minute">
+            <users maxnumber="100" arrivalrate="1" unit="second"/>
+        </arrivalphase>
+        <arrivalphase phase="2" duration="3" unit="minute">
+            <users maxnumber="100" arrivalrate="1" unit="second"/>
+        </arrivalphase>
+        <arrivalphase phase="3" duration="5" unit="minute">
+            <users maxnumber="100" arrivalrate="1" unit="second"/>
+        </arrivalphase>
+    </load>
+
+    <!-- Opcoes - Declaracao de variaveis, browser e outros -->
+    <options>
+        <option name="file_server" id="forSearch" value="massData.csv"/>
+
+
+        <option type="ts_http" name="user_agent">
+            <user_agent probability="24">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36</user_agent>
+            <user_agent probability="22">Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36</user_agent>
+            <user_agent probability="20">Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36</user_agent>
+            <user_agent probability="19">Mozilla/5.0 (Windows NT 6.1; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36</user_agent>
+            <user_agent probability="8">Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36</user_agent>
+            <user_agent probability="7">Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.84 Safari/537.36</user_agent>
+
+            <!-- <user_agent probability="100">tsungstresstest</user_agent> -->
+        </option>
+    </options>
+
+    <sessions>
+        <!-- Navegacao -->
+        <session name="Navegacao_test" probability="30" type="ts_http">
+            <for incr="1" from="1" to="90000" var="counter">
+                <thinktime min="1" max="2" random="true"/>
+                <transaction name="navegacao">
+
+                    <request>                        
+                        <http url="/" method="GET">
+                            <http_header name="Accept-Encoding" value="gzip, deflate, sdch"/>
+                        </http>
+                    </request>
+
+                </transaction>
+            </for>
+        </session>
+
+        <!-- Busca -->
+        <session name="search_test" probability="60" type="ts_http">
+            <for incr="1" from="1" to="90000" var="counter">
+                <thinktime min="2" max="4" random="true"/>
+                <setdynvars sourcetype="file" fileid="forSearch" callback="ts_file_server:get_next_line">
+                    <var name="searchThis"/>
+                </setdynvars>
+                <transaction name="search">
+                    <request subst="true">
+                        <http url="/search?q=%%_searchThis%%" method="GET">
+                            <http_header name="Accept-Encoding" value="gzip, deflate, sdch"/>
+                            
+                        </http>
+                    </request>
+                </transaction>
+            </for>
+        </session>
+
+    </sessions>
+</tsung>
